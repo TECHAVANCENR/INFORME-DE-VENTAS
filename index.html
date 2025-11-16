@@ -1,0 +1,3377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Ventas - Unidad de Energía</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            font-size: 0.9rem;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
+                              url('https://images.unsplash.com/photo-1620712943543-bcc4688e7485?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        /* Estilos del login - RESPONSIVE */
+        .login-modal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(1, 1, 1, 0.85), rgba(0, 0, 0, 0.85)),
+                  url('https://images.unsplash.com/photo-1620712943543-bcc4688e7485?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            padding: 15px;
+        }
+        
+        .login-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 15px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transform: translateY(0);
+            transition: transform 0.5s ease;
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .login-header h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .login-header p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .login-icon {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 42px;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .password-toggle:hover {
+            color: var(--secondary-color);
+        }
+        
+        .login-btn {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 0.5rem;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .error-message {
+            color: var(--accent-color);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .security-info {
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .security-info h6 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .security-info ul {
+            padding-left: 1.2rem;
+            margin-bottom: 0;
+        }
+        
+        .security-info li {
+            margin-bottom: 0.3rem;
+        }
+        
+        .dashboard-content {
+            display: none;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            margin-left: 1rem;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            margin-left: 0.5rem;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Estilos para el modal de carga de archivos */
+        .upload-modal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 9998;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            padding: 15px;
+        }
+        
+        .upload-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+        }
+        
+        .upload-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .upload-header h3 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-upload-area:hover, .file-upload-area.dragover {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.05);
+        }
+        
+        .file-upload-area i {
+            font-size: 3rem;
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 0.5rem;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .upload-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .file-info h6 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .file-structure {
+            background: white;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #7f8c8d;
+            cursor: pointer;
+        }
+        
+        .admin-only {
+            display: none;
+        }
+        
+        /* Modal para agregar/editar órdenes */
+        .order-modal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 9998;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            padding: 15px;
+        }
+        
+        .order-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .order-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+        }
+        
+        .order-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .order-header h3 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .order-icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .order-form .row {
+            margin-bottom: 1rem;
+        }
+        
+        .order-form label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .order-form .form-control, .order-form .form-select {
+            font-size: 0.85rem;
+        }
+        
+        .order-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 1.5rem;
+        }
+        
+        /* Resto de estilos del dashboard (se mantienen igual) */
+        .dashboard-header {
+            background: linear-gradient(135deg, rgba(44, 62, 80, 0.95), rgba(52, 73, 94, 0.95));
+            color: white;
+            padding: 1.2rem 0;
+            margin-bottom: 1.5rem;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+        }
+        
+        .tasa-cambio-header {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 0.7rem 1.2rem;
+            margin-top: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tasa-cambio-header input {
+            width: 90px;
+            display: inline-block;
+            margin: 0 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            text-align: center;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .tasa-cambio-header input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 10px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-left: 5px solid var(--secondary-color);
+            transition: all 0.3s ease;
+            height: 100%;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        
+        .metric-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+            color: var(--secondary-color);
+            opacity: 0.8;
+        }
+        
+        .metric-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .metric-change {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .chart-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 10px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            position: relative;
+            height: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .chart-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        
+        .chart-title h6 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--primary-color);
+        }
+        
+        .filters-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 10px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .data-table-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 10px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow-x: auto;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            font-size: 0.8rem;
+            padding: 0.7rem;
+            border: none;
+        }
+        
+        .table td {
+            font-size: 0.8rem;
+            padding: 0.7rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+        
+        .search-container input {
+            padding-right: 40px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 8px;
+            color: #7f8c8d;
+        }
+        
+        .badge-pagada {
+            background: linear-gradient(135deg, var(--success-color), #27ae60);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .badge-pendiente {
+            background: linear-gradient(135deg, var(--accent-color), #c0392b);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .pdf-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .filter-badge {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            border-radius: 20px;
+            padding: 0.3rem 0.7rem;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .filter-badge .close {
+            margin-left: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .tasa-cambio {
+            background: rgba(248, 249, 250, 0.7);
+            border-left: 4px solid var(--secondary-color);
+            padding: 0.7rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        
+        .cliente-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+            height: 100%;
+        }
+        
+        .cliente-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        
+        .cliente-nombre {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .cliente-monto {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .cliente-detalle {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .cliente-ordenes {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .asesor-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+            height: 100%;
+        }
+        
+        .asesor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        
+        .asesor-nombre {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .asesor-monto {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 0.25rem;
+        }
+        
+        .asesor-detalle {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .asesor-ordenes {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .row.g-2 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-actualizar {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-actualizar:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .upload-data-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            margin-left: 0.5rem;
+        }
+        
+        .upload-data-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-action {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            margin: 0 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .metric-card {
+                margin-bottom: 0.75rem;
+            }
+            
+            .metric-value {
+                font-size: 1.4rem;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+            }
+            
+            .tasa-cambio-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .tasa-cambio-header > div {
+                margin-bottom: 0.5rem;
+            }
+            
+            .user-info {
+                margin-left: 0;
+                margin-top: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .login-container {
+                padding: 1.5rem;
+            }
+            
+            .order-container {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .chart-wrapper {
+                height: 220px;
+            }
+            
+            .cliente-card, .asesor-card {
+                padding: 0.8rem;
+            }
+            
+            .cliente-monto, .asesor-monto {
+                font-size: 1.1rem;
+            }
+            
+            .login-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            .upload-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            .order-container {
+                padding: 1rem;
+            }
+            
+            .login-header h2 {
+                font-size: 1.3rem;
+            }
+            
+            .login-icon {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sistema de Autenticación -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>Acceso Seguro</h2>
+                <p>Ingrese sus credenciales para acceder al Dashboard</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">Usuario</label>
+                    <input type="text" class="form-control" id="username" placeholder="Ingrese su usuario" required>
+                    <div class="error-message" id="usernameError">Usuario incorrecto</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" id="password" placeholder="Ingrese su contraseña" required>
+                    <span class="password-toggle" id="passwordToggle">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                    <div class="error-message" id="passwordError">Contraseña incorrecta</div>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginButton">
+                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                </button>
+                
+                <div class="security-info">
+                    <h6><i class="fas fa-info-circle me-1"></i>Información de Seguridad</h6>
+                    <ul>
+                        <li>Este sistema está protegido con autenticación de acceso</li>
+                        <li>Todas las credenciales son encriptadas</li>
+                        <li>Su sesión expirará automáticamente después de 30 minutos de inactividad</li>
+                    </ul>
+                </div>
+                
+                <div class="login-footer">
+                    <p>Dashboard de Ventas - Unidad de Energía &copy; 2024</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para carga de archivos JSON (solo para administrador) -->
+    <div class="upload-modal" id="uploadModal">
+        <div class="upload-container">
+            <button class="close-modal" id="closeUploadModal">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="upload-header">
+                <div class="upload-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <h3>Cargar Datos de Ventas</h3>
+                <p>Suba un archivo JSON con los datos de ventas actualizados</p>
+            </div>
+            
+            <div class="file-upload-area" id="fileUploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h5>Arrastre y suelte su archivo aquí</h5>
+                <p>o haga clic para seleccionar un archivo</p>
+                <input type="file" class="file-input" id="jsonFileInput" accept=".json">
+            </div>
+            
+            <div class="file-info">
+                <h6><i class="fas fa-info-circle me-1"></i>Información del Archivo</h6>
+                <p>El archivo debe ser un JSON válido con el siguiente formato:</p>
+                <div class="file-structure">
+                    <pre>[
+  {
+    "ORDEN DE VENTA ": "787",
+    "ASESOR": "Jorge Mayorga",
+    "SOLICITUD": "1/3/25",
+    "CREDITO": "30",
+    "CLIENTE": "Vivibanco , S. A.",
+    "FACTURA SAT": "CAD2D0D0-215042313",
+    "VENTAS QUETZALES": "7500",
+    "VENTAS DOLARES": "0",
+    "EMITIDA": "1/3/25",
+    "VENCE": "2/2/25",
+    "NOTIFICACION": "Factura Pagada",
+    "STATUS OV": "Facturada",
+    "TIPÓ VENTA": "Servicio",
+    "MONEDA": "Quetzales",
+    "STATUS PAGO": "Pagada",
+    "FECHA PAGO": "2/6/25",
+    "OBSERVACION PAGO": "Pago Aplicado En SAP "
+  },
+  ...
+]</pre>
+                </div>
+            </div>
+            
+            <button class="upload-btn" id="uploadJsonButton" disabled>
+                <i class="fas fa-upload me-2"></i>Cargar Datos
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar órdenes (solo para administrador) -->
+    <div class="order-modal" id="orderModal">
+        <div class="order-container">
+            <button class="close-modal" id="closeOrderModal">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="order-header">
+                <div class="order-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h3 id="orderModalTitle">Agregar Nueva Orden</h3>
+                <p id="orderModalSubtitle">Complete los datos de la orden de venta</p>
+            </div>
+            
+            <form id="orderForm">
+                <input type="hidden" id="editOrderId">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderNum" class="form-label">Orden de Venta</label>
+                            <input type="text" class="form-control" id="orderNum" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderAsesor" class="form-label">Asesor</label>
+                            <input type="text" class="form-control" id="orderAsesor" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderCliente" class="form-label">Cliente</label>
+                            <input type="text" class="form-control" id="orderCliente" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderSolicitud" class="form-label">Fecha de Solicitud</label>
+                            <input type="date" class="form-control" id="orderSolicitud" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderVentasQ" class="form-label">Ventas en Quetzales</label>
+                            <input type="number" step="0.01" class="form-control" id="orderVentasQ" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderVentasD" class="form-label">Ventas en Dólares</label>
+                            <input type="number" step="0.01" class="form-control" id="orderVentasD" value="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderEmitida" class="form-label">Fecha de Emisión</label>
+                            <input type="date" class="form-control" id="orderEmitida" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderVence" class="form-label">Fecha de Vencimiento</label>
+                            <input type="date" class="form-control" id="orderVence" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderStatusPago" class="form-label">Estado de Pago</label>
+                            <select class="form-select" id="orderStatusPago" required>
+                                <option value="Pagada">Pagada</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderFechaPago" class="form-label">Fecha de Pago</label>
+                            <input type="date" class="form-control" id="orderFechaPago">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderMoneda" class="form-label">Moneda</label>
+                            <select class="form-select" id="orderMoneda" required>
+                                <option value="Quetzales">Quetzales</option>
+                                <option value="Dolares">Dólares</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="orderTipoVenta" class="form-label">Tipo de Venta</label>
+                            <select class="form-select" id="orderTipoVenta" required>
+                                <option value="Servicio">Servicio</option>
+                                <option value="Producto">Producto</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="orderObservacion" class="form-label">Observación</label>
+                    <textarea class="form-control" id="orderObservacion" rows="2"></textarea>
+                </div>
+                
+                <div class="order-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelOrderButton">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="saveOrderButton">Guardar Orden</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenido del Dashboard (inicialmente oculto) -->
+    <div class="dashboard-content" id="dashboardContent">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="h4 mb-1"><i class="fas fa-bolt me-2"></i>INFORME DE VENTAS UNIDAD DE ENERGÍA</h1>
+                        <p class="mb-0 small">Dashboard ejecutivo para alta gerencia</p>
+                        
+                        <div class="tasa-cambio-header">
+                            <div>
+                                <span class="small"><i class="fas fa-exchange-alt me-1"></i>Tasa de Cambio:</span>
+                                <input type="number" step="0.01" id="tasa-cambio-input" value="7.80" class="form-control form-control-sm d-inline">
+                                <span class="small">1 USD = <span id="tasa-cambio-value">7.80</span> GTQ</span>
+                            </div>
+                            <button class="btn-actualizar" id="btn-actualizar-tasa">
+                                <i class="fas fa-sync-alt me-1"></i>Actualizar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end d-flex align-items-center justify-content-end flex-wrap">
+                        <span class="badge bg-light text-dark small"><i class="fas fa-calendar-alt me-1"></i>Actualizado: Hoy</span>
+                        <div class="user-info">
+                            <div class="user-avatar" id="userAvatar">A</div>
+                            <span id="userName">Administrador</span>
+                            <!-- Botón para cargar datos (solo visible para admin) -->
+                            <button class="upload-data-btn admin-only" id="uploadDataButton">
+                                <i class="fas fa-upload me-1"></i>Cargar Datos
+                            </button>
+                            <button class="logout-btn" id="logoutButton">
+                                <i class="fas fa-sign-out-alt me-1"></i>Salir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Filtros -->
+            <div class="filters-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros Avanzados</h6>
+                    <div>
+                        <button class="btn btn-success btn-sm admin-only" id="btn-agregar-orden">
+                            <i class="fas fa-plus me-1"></i>Agregar Orden
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="btn-reset-filtros">
+                            <i class="fas fa-eraser me-1"></i>Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="filtros-activos" class="mb-3">
+                    <!-- Los filtros activos aparecerán aquí -->
+                </div>
+                
+                <div class="row g-2">
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="filter-asesor" class="form-label small"><i class="fas fa-user me-1"></i>Asesor</label>
+                        <select class="form-select form-select-sm" id="filter-asesor">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="filter-cliente" class="form-label small"><i class="fas fa-building me-1"></i>Cliente</label>
+                        <select class="form-select form-select-sm" id="filter-cliente">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="filter-status-pago" class="form-label small"><i class="fas fa-money-bill-wave me-1"></i>Estado de Pago</label>
+                        <select class="form-select form-select-sm" id="filter-status-pago">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="filter-moneda" class="form-label small"><i class="fas fa-coins me-1"></i>Moneda</label>
+                        <select class="form-select form-select-sm" id="filter-moneda">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="filter-tipo-venta" class="form-label small"><i class="fas fa-tags me-1"></i>Tipo de Venta</label>
+                        <select class="form-select form-select-sm" id="filter-tipo-venta">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="filter-fecha-inicio" class="form-label small"><i class="fas fa-calendar me-1"></i>Fecha Inicio</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-fecha-inicio">
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <label for="filter-fecha-fin" class="form-label small"><i class="fas fa-calendar me-1"></i>Fecha Fin</label>
+                        <input type="date" class="form-control form-control-sm" id="filter-fecha-fin">
+                    </div>
+                    <div class="col-sm-6 col-md-4 col-lg-3 d-flex align-items-end">
+                        <button class="btn btn-primary btn-sm w-100" id="btn-aplicar-filtros">
+                            <i class="fas fa-check me-1"></i>Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Métricas principales -->
+            <div class="row g-2">
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="metric-label">Total Ventas (Q)</div>
+                        <div class="metric-value" id="total-ventas-quetzales">Q 0.00</div>
+                        <div class="metric-change" id="change-ventas-quetzales"></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="metric-label">Total Ventas ($)</div>
+                        <div class="metric-value" id="total-ventas-dolares">$ 0.00</div>
+                        <div class="metric-change" id="change-ventas-dolares"></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div class="metric-label">Órdenes de Venta</div>
+                        <div class="metric-value" id="total-ordenes">0</div>
+                        <div class="metric-change" id="change-ordenes"></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="metric-label">Tasa de Conversión</div>
+                        <div class="metric-value" id="tasa-conversion">100%</div>
+                        <div class="metric-change" id="change-conversion"></div>
+                    </div>
+                </div>
+                <!-- Nuevas tarjetas de Ventas Netas -->
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="metric-label">Ventas Netas (Q)</div>
+                        <div class="metric-value" id="ventas-netas-quetzales">Q 0.00</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="metric-label">Ventas Netas ($)</div>
+                        <div class="metric-value" id="ventas-netas-dolares">$ 0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ventas por Asesor - Tarjetas -->
+            <div class="row g-2 mb-3">
+                <div class="col-12">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <h6 class="mb-0"><i class="fas fa-user-tie me-2"></i>Ventas por Asesor</h6>
+                            <span class="badge bg-primary small" id="total-asesores">0 asesores</span>
+                        </div>
+                        <div class="row g-2" id="asesores-cards">
+                            <!-- Las tarjetas de asesores se generarán aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos Top 5 -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <h6 class="mb-0"><i class="fas fa-trophy me-2"></i>Top 5 Ventas en Quetzales</h6>
+                            <span class="badge bg-primary small">Top 5</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-top5-quetzales"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <h6 class="mb-0"><i class="fas fa-trophy me-2"></i>Top 5 Ventas en Dólares</h6>
+                            <span class="badge bg-primary small">Top 5</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-top5-dolares"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ventas por Cliente - Tarjetas -->
+            <div class="row g-2 mb-3">
+                <div class="col-12">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <h6 class="mb-0"><i class="fas fa-users me-2"></i>Ventas por Cliente</h6>
+                            <span class="badge bg-primary small" id="total-clientes">0 clientes</span>
+                        </div>
+                        <div class="row g-2" id="clientes-cards">
+                            <!-- Las tarjetas de clientes se generarán aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficas -->
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Distribución por Estado de Pago</h6>
+                            <span class="badge bg-primary small" id="total-estados">0 estados</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-estado-pago"></canvas>
+                        </div>
+                        <div class="tasa-cambio">
+                            <strong><i class="fas fa-list me-1"></i>Montos por Estado:</strong>
+                            <div id="montos-estado-pago" class="mt-1 small">
+                                <!-- Los montos se mostrarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Comparativa Quetzales vs Dólares</h6>
+                            <span class="badge bg-primary small" id="ratio-monedas">Ratio: 0.0</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-comparativa-monedas"></canvas>
+                        </div>
+                        <div class="tasa-cambio">
+                            <div id="montos-comparativa" class="small">
+                                <!-- Los montos se mostrarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico Ventas por Mes -->
+            <div class="row g-2 mb-3">
+                <div class="col-12">
+                    <div class="chart-container">
+                        <div class="chart-title">
+                            <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Ventas por Mes</h6>
+                            <div>
+                                <span class="badge bg-primary small me-2" id="total-meses">0 meses</span>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <input type="radio" class="btn-check" name="chart-type" id="bar-chart" autocomplete="off" checked>
+                                    <label class="btn btn-outline-primary" for="bar-chart"><i class="fas fa-chart-bar"></i></label>
+                                    
+                                    <input type="radio" class="btn-check" name="chart-type" id="line-chart" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="line-chart"><i class="fas fa-chart-line"></i></label>
+                                    
+                                    <input type="radio" class="btn-check" name="chart-type" id="stacked-chart" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="stacked-chart"><i class="fas fa-layer-group"></i></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-ventas-mes"></canvas>
+                        </div>
+                        <div class="tasa-cambio mt-2">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-chart-line me-1"></i>Tendencias:</strong>
+                                    <div id="tendencias-mensuales" class="small">
+                                        <!-- Las tendencias se mostrarán aquí -->
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-percentage me-1"></i>Distribución:</strong>
+                                    <div id="distribucion-mensual" class="small">
+                                        <!-- La distribución se mostrará aquí -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listado de registros -->
+            <div class="data-table-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="fas fa-table me-2"></i>Detalle de Órdenes de Venta</h6>
+                    <div>
+                        <button class="pdf-btn me-2" id="btn-pdf">
+                            <i class="fas fa-file-pdf me-1"></i> Generar PDF
+                        </button>
+                        <button class="export-btn me-2" id="btn-exportar">
+                            <i class="fas fa-download me-1"></i> Exportar CSV
+                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-secondary btn-sm" id="btn-prev">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="btn-next">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="search-container">
+                    <input type="text" class="form-control form-control-sm" id="search-input" placeholder="Buscar en todos los campos...">
+                    <span class="search-icon"><i class="fas fa-search"></i></span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="tabla-ventas">
+                        <thead>
+                            <tr>
+                                <th>Orden Venta</th>
+                                <th>Asesor</th>
+                                <th>Cliente</th>
+                                <th>Ventas Q</th>
+                                <th>Ventas $</th>
+                                <th>Fecha Emisión</th>
+                                <th>Fecha Vence</th>
+                                <th>Estado Pago</th>
+                                <th>Fecha Pago</th>
+                                <th>Tipo Venta</th>
+                                <th class="admin-only">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-body">
+                            <!-- Los datos se cargarán aquí mediante JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div id="resultados-info" class="small">Mostrando 0 de 0 registros</div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="pagination">
+                            <!-- La paginación se generará mediante JavaScript -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo proporcionados
+        const datosEjemplo = [
+            { "ORDEN DE VENTA ": "787", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/3/25", "CREDITO": "30", "CLIENTE": "Vivibanco , S. A.", "FACTURA SAT": "CAD2D0D0-215042313", "VENTAS QUETZALES": "7500", "VENTAS DOLARES": "0", "EMITIDA": "1/3/25", "VENCE": "2/2/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "2/6/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "785", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/3/25", "CREDITO": "30", "CLIENTE": "Banco Internacional S. A.", "FACTURA SAT": "80D8FA0F-3388100452", "VENTAS QUETZALES": "33408.15", "VENTAS DOLARES": "0", "EMITIDA": "1/3/25", "VENCE": "2/2/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "1/24/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "786", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/3/25", "CREDITO": "30", "CLIENTE": "Interconsumo", "FACTURA SAT": "FEC6F07E-2479769910", "VENTAS QUETZALES": "5902.5", "VENTAS DOLARES": "0", "EMITIDA": "1/3/25", "VENCE": "2/2/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "1/15/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "796", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/7/25", "CREDITO": "60", "CLIENTE": "Kellogg De C.A., S.A.", "FACTURA SAT": "CD71A67C-2993439124", "VENTAS QUETZALES": "1750", "VENTAS DOLARES": "0", "EMITIDA": "1/7/25", "VENCE": "3/8/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "3/12/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "799", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/9/25", "CREDITO": "", "CLIENTE": "Yazaki De Guatemala, S.A", "FACTURA SAT": "19FB8DFB-3483782073", "VENTAS QUETZALES": "0", "VENTAS DOLARES": "438.4", "EMITIDA": "1/9/25", "VENCE": "1/9/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Dolares", "STATUS PAGO": "Pagada", "FECHA PAGO": "1/13/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "801", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/10/25", "CREDITO": "30", "CLIENTE": "Alfa Uno, S.A.", "FACTURA SAT": "875D99E1-90262578", "VENTAS QUETZALES": "672", "VENTAS DOLARES": "0", "EMITIDA": "1/10/25", "VENCE": "2/9/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "2/6/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "784", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/15/25", "CREDITO": "30", "CLIENTE": "Banco De Guatemala", "FACTURA SAT": "071BBE40-560877068", "VENTAS QUETZALES": "16543.09", "VENTAS DOLARES": "0", "EMITIDA": "1/15/25", "VENCE": "2/14/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "1/15/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "800", "ASESOR": "Jorge Mayorga", "SOLICITUT": "1/15/25", "CREDITO": "30", "CLIENTE": "Banco De Guatemala", "FACTURA SAT": "6417C6EB-2814136171", "VENTAS QUETZALES": "16735.99", "VENTAS DOLARES": "0", "EMITIDA": "1/15/25", "VENCE": "2/14/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "1/15/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " },
+            { "ORDEN DE VENTA ": "809", "ASESOR": "Jorge Mayorga", "SOLICITUD": "1/17/25", "CREDITO": "30", "CLIENTE": "Banco Industrial S.A.", "FACTURA SAT": "47FD5B9D-2167226611", "VENTAS QUETZALES": "8375", "VENTAS DOLARES": "0", "EMITIDA": "1/17/25", "VENCE": "2/16/25", "NOTIFICACION": "Factura Pagada", "STATUS OV": "Facturada", "TIPÓ VENTA": "Servicio", "MONEDA": "Quetzales", "STATUS PAGO": "Pagada", "FECHA PAGO": "1/29/25", "OBSERVACION PAGO": "Pago Aplicado En SAP " }
+        ];
+
+        // Variables globales
+        let TASA_CAMBIO = 7.80; // Tasa de cambio inicial
+        let datosFiltrados = [];
+        let datosOriginales = [];
+        let paginaActual = 1;
+        const registrosPorPagina = 5;
+        let charts = {}; // Para almacenar las instancias de los gráficos
+        let filtrosActivos = {};
+        let tipoGraficoVentasMes = 'bar'; // Tipo de gráfico por defecto
+
+        // Credenciales de acceso (en un entorno real esto estaría en el backend)
+        const usuarios = {
+            'admin': { password: 'Energia2024!', nombre: 'Administrador', avatar: 'A' },
+            'gerente': { password: 'Gerente123!', nombre: 'Gerente General', avatar: 'G' },
+            'analista': { password: 'Analista456!', nombre: 'Analista de Ventas', avatar: 'AV' }
+        };
+
+        // Función para formatear fechas
+        function formatearFecha(fechaStr) {
+            if (!fechaStr) return '';
+            
+            // Si ya está en formato YYYY-MM-DD, devolver como está
+            if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
+                return fechaStr;
+            }
+            
+            // Convertir de formato M/D/YY a DD/MM/YYYY
+            const partes = fechaStr.split('/');
+            if (partes.length === 3) {
+                let [mes, dia, anio] = partes;
+                
+                // Asegurar que el año tenga 4 dígitos
+                if (anio.length === 2) {
+                    anio = '20' + anio;
+                }
+                
+                // Asegurar dos dígitos para mes y día
+                mes = mes.padStart(2, '0');
+                dia = dia.padStart(2, '0');
+                
+                // Formato DD/MM/YYYY
+                return `${dia}/${mes}/${anio}`;
+            }
+            
+            return fechaStr;
+        }
+
+        // Función para convertir fecha a formato YYYY-MM-DD para inputs de tipo date
+        function fechaParaInput(fechaStr) {
+            if (!fechaStr) return '';
+            
+            // Si ya está en formato YYYY-MM-DD, devolver como está
+            if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
+                return fechaStr;
+            }
+            
+            // Convertir de formato M/D/YY o DD/MM/YYYY a YYYY-MM-DD
+            const partes = fechaStr.split('/');
+            if (partes.length === 3) {
+                let [parte1, parte2, anio] = partes;
+                
+                // Determinar si el formato es M/D/YY o DD/MM/YYYY
+                let dia, mes;
+                if (parte1.length <= 2 && parte2.length <= 2) {
+                    // Probablemente es M/D/YY
+                    mes = parte1.padStart(2, '0');
+                    dia = parte2.padStart(2, '0');
+                } else {
+                    // Probablemente es DD/MM/YYYY
+                    dia = parte1.padStart(2, '0');
+                    mes = parte2.padStart(2, '0');
+                }
+                
+                // Asegurar que el año tenga 4 dígitos
+                if (anio.length === 2) {
+                    anio = '20' + anio;
+                }
+                
+                return `${anio}-${mes}-${dia}`;
+            }
+            
+            return fechaStr;
+        }
+
+        // Función para cargar datos desde localStorage
+        function cargarDatosDesdeLocalStorage() {
+            try {
+                const datosGuardados = localStorage.getItem('dashboardVentasDatos');
+                if (datosGuardados) {
+                    return JSON.parse(datosGuardados);
+                }
+            } catch (error) {
+                console.error('Error al cargar datos desde localStorage:', error);
+            }
+            return null;
+        }
+
+        // Función para guardar datos en localStorage
+        function guardarDatosEnLocalStorage(datos) {
+            try {
+                localStorage.setItem('dashboardVentasDatos', JSON.stringify(datos));
+                return true;
+            } catch (error) {
+                console.error('Error al guardar datos en localStorage:', error);
+                return false;
+            }
+        }
+
+        // Inicialización cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar datos desde localStorage
+            const datosGuardados = cargarDatosDesdeLocalStorage();
+            if (datosGuardados && datosGuardados.length > 0) {
+                datosOriginales = [...datosGuardados];
+                datosFiltrados = [...datosGuardados];
+            } else {
+                // Usar datos de ejemplo si no hay datos guardados
+                datosOriginales = [...datosEjemplo];
+                datosFiltrados = [...datosEjemplo];
+            }
+            
+            inicializarLogin();
+        });
+
+        // Inicializar sistema de login
+        function inicializarLogin() {
+            // Verificar si ya hay una sesión activa
+            const sesionActiva = localStorage.getItem('sesionActiva');
+            if (sesionActiva) {
+                const usuario = JSON.parse(sesionActiva);
+                iniciarSesion(usuario);
+            } else {
+                // Mostrar el modal de login
+                document.getElementById('loginModal').style.display = 'flex';
+            }
+
+            // Configurar eventos del login
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                validarCredenciales();
+            });
+
+            // Configurar toggle de visibilidad de contraseña
+            document.getElementById('passwordToggle').addEventListener('click', function() {
+                const passwordInput = document.getElementById('password');
+                const icon = this.querySelector('i');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+
+            // Configurar botón de logout
+            document.getElementById('logoutButton').addEventListener('click', function() {
+                cerrarSesion();
+            });
+
+            // Permitir Enter para enviar el formulario
+            document.getElementById('username').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('password').focus();
+                }
+            });
+
+            document.getElementById('password').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    validarCredenciales();
+                }
+            });
+        }
+
+        // Validar credenciales de acceso
+        function validarCredenciales() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const usernameError = document.getElementById('usernameError');
+            const passwordError = document.getElementById('passwordError');
+            
+            // Resetear mensajes de error
+            usernameError.style.display = 'none';
+            passwordError.style.display = 'none';
+            
+            // Validar que los campos no estén vacíos
+            if (!username) {
+                usernameError.textContent = 'Por favor ingrese su usuario';
+                usernameError.style.display = 'block';
+                return;
+            }
+            
+            if (!password) {
+                passwordError.textContent = 'Por favor ingrese su contraseña';
+                passwordError.style.display = 'block';
+                return;
+            }
+            
+            // Verificar si el usuario existe
+            if (!usuarios[username]) {
+                usernameError.textContent = 'Usuario no encontrado';
+                usernameError.style.display = 'block';
+                return;
+            }
+            
+            // Verificar contraseña
+            if (usuarios[username].password !== password) {
+                passwordError.textContent = 'Contraseña incorrecta';
+                passwordError.style.display = 'block';
+                return;
+            }
+            
+            // Iniciar sesión exitosamente
+            const usuario = {
+                username: username,
+                nombre: usuarios[username].nombre,
+                avatar: usuarios[username].avatar
+            };
+            
+            iniciarSesion(usuario);
+        }
+
+        // Iniciar sesión
+        function iniciarSesion(usuario) {
+            // Guardar sesión en localStorage
+            localStorage.setItem('sesionActiva', JSON.stringify(usuario));
+            
+            // Actualizar interfaz con información del usuario
+            document.getElementById('userName').textContent = usuario.nombre;
+            document.getElementById('userAvatar').textContent = usuario.avatar;
+            
+            // Mostrar funcionalidades de administrador si corresponde
+            if (usuario.username === 'admin') {
+                document.querySelectorAll('.admin-only').forEach(el => {
+                    el.style.display = 'inline-block';
+                });
+            }
+            
+            // Ocultar modal de login con animación
+            const loginModal = document.getElementById('loginModal');
+            loginModal.style.opacity = '0';
+            
+            setTimeout(() => {
+                loginModal.style.display = 'none';
+                // Mostrar dashboard
+                document.getElementById('dashboardContent').style.display = 'block';
+                
+                // Inicializar dashboard
+                inicializarDashboard();
+            }, 500);
+        }
+
+        // Cerrar sesión
+        function cerrarSesion() {
+            // Eliminar sesión del localStorage
+            localStorage.removeItem('sesionActiva');
+            
+            // Ocultar dashboard
+            document.getElementById('dashboardContent').style.display = 'none';
+            
+            // Ocultar funcionalidades de administrador
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Mostrar modal de login
+            const loginModal = document.getElementById('loginModal');
+            loginModal.style.display = 'flex';
+            setTimeout(() => {
+                loginModal.style.opacity = '1';
+            }, 10);
+            
+            // Limpiar formulario
+            document.getElementById('loginForm').reset();
+        }
+
+        // Inicializar dashboard después del login
+        function inicializarDashboard() {
+            inicializarFiltros();
+            actualizarMetricas();
+            renderizarTarjetasClientes();
+            renderizarTarjetasAsesores();
+            renderizarGraficas();
+            renderizarTabla();
+            configurarEventos();
+            
+            // Configurar tasa de cambio
+            document.getElementById('tasa-cambio-value').textContent = TASA_CAMBIO.toFixed(2);
+            document.getElementById('tasa-cambio-input').value = TASA_CAMBIO.toFixed(2);
+            
+            // Configurar funcionalidad de carga de archivos (solo para admin)
+            const usuario = JSON.parse(localStorage.getItem('sesionActiva'));
+            if (usuario && usuario.username === 'admin') {
+                configurarCargaArchivos();
+                configurarCRUD();
+            }
+        }
+
+        // Configurar funcionalidad de carga de archivos JSON
+        function configurarCargaArchivos() {
+            const uploadModal = document.getElementById('uploadModal');
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            const jsonFileInput = document.getElementById('jsonFileInput');
+            const uploadJsonButton = document.getElementById('uploadJsonButton');
+            const closeUploadModal = document.getElementById('closeUploadModal');
+            const uploadDataButton = document.getElementById('uploadDataButton');
+            
+            // Abrir modal al hacer clic en el botón de carga
+            uploadDataButton.addEventListener('click', function() {
+                uploadModal.style.display = 'flex';
+                setTimeout(() => {
+                    uploadModal.style.opacity = '1';
+                }, 10);
+            });
+            
+            // Cerrar modal
+            closeUploadModal.addEventListener('click', function() {
+                uploadModal.style.opacity = '0';
+                setTimeout(() => {
+                    uploadModal.style.display = 'none';
+                    // Resetear el formulario
+                    jsonFileInput.value = '';
+                    uploadJsonButton.disabled = true;
+                    fileUploadArea.classList.remove('dragover');
+                }, 500);
+            });
+            
+            // Abrir selector de archivos al hacer clic en el área de carga
+            fileUploadArea.addEventListener('click', function() {
+                jsonFileInput.click();
+            });
+            
+            // Manejar la selección de archivos
+            jsonFileInput.addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    if (file.type === 'application/json') {
+                        uploadJsonButton.disabled = false;
+                        fileUploadArea.innerHTML = `
+                            <i class="fas fa-file-check" style="color: #2ecc71;"></i>
+                            <h5>Archivo seleccionado</h5>
+                            <p>${file.name}</p>
+                            <input type="file" class="file-input" id="jsonFileInput" accept=".json">
+                        `;
+                    } else {
+                        mostrarMensaje('Por favor seleccione un archivo JSON válido', 'error');
+                        this.value = '';
+                    }
+                }
+            });
+            
+            // Manejar arrastrar y soltar
+            fileUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            fileUploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            
+            fileUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type === 'application/json') {
+                        jsonFileInput.files = e.dataTransfer.files;
+                        uploadJsonButton.disabled = false;
+                        fileUploadArea.innerHTML = `
+                            <i class="fas fa-file-check" style="color: #2ecc71;"></i>
+                            <h5>Archivo seleccionado</h5>
+                            <p>${file.name}</p>
+                            <input type="file" class="file-input" id="jsonFileInput" accept=".json">
+                        `;
+                    } else {
+                        mostrarMensaje('Por favor seleccione un archivo JSON válido', 'error');
+                    }
+                }
+            });
+            
+            // Manejar la carga del archivo
+            uploadJsonButton.addEventListener('click', function() {
+                const file = jsonFileInput.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const nuevosDatos = JSON.parse(e.target.result);
+                        
+                        // Validar que sea un array
+                        if (!Array.isArray(nuevosDatos)) {
+                            throw new Error('El archivo JSON debe contener un array de objetos');
+                        }
+                        
+                        // Validar que tenga la estructura básica esperada
+                        if (nuevosDatos.length > 0 && !nuevosDatos[0].hasOwnProperty('ORDEN DE VENTA ')) {
+                            throw new Error('El formato del archivo no es válido. Debe contener los campos esperados.');
+                        }
+                        
+                        // Actualizar los datos globales
+                        datosOriginales = [...nuevosDatos];
+                        datosFiltrados = [...nuevosDatos];
+                        
+                        // GUARDAR LOS DATOS EN LOCALSTORAGE
+                        const exito = guardarDatosEnLocalStorage(nuevosDatos);
+                        
+                        // Cerrar el modal
+                        uploadModal.style.opacity = '0';
+                        setTimeout(() => {
+                            uploadModal.style.display = 'none';
+                            // Resetear el formulario
+                            jsonFileInput.value = '';
+                            uploadJsonButton.disabled = true;
+                            fileUploadArea.innerHTML = `
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h5>Arrastre y suelte su archivo aquí</h5>
+                                <p>o haga clic para seleccionar un archivo</p>
+                                <input type="file" class="file-input" id="jsonFileInput" accept=".json">
+                            `;
+                        }, 500);
+                        
+                        // Actualizar todo el dashboard
+                        inicializarFiltros();
+                        actualizarMetricas();
+                        renderizarTarjetasClientes();
+                        renderizarTarjetasAsesores();
+                        renderizarGraficas();
+                        renderizarTabla();
+                        
+                        if (exito) {
+                            mostrarMensaje('Datos actualizados y guardados correctamente', 'success');
+                        } else {
+                            mostrarMensaje('Datos actualizados, pero no se pudieron guardar para futuras sesiones', 'warning');
+                        }
+                    } catch (error) {
+                        console.error('Error al procesar el archivo:', error);
+                        mostrarMensaje('Error al procesar el archivo: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        // Configurar funcionalidad CRUD (solo para administrador)
+        function configurarCRUD() {
+            const orderModal = document.getElementById('orderModal');
+            const closeOrderModal = document.getElementById('closeOrderModal');
+            const cancelOrderButton = document.getElementById('cancelOrderButton');
+            const saveOrderButton = document.getElementById('saveOrderButton');
+            const orderForm = document.getElementById('orderForm');
+            const btnAgregarOrden = document.getElementById('btn-agregar-orden');
+            
+            // Abrir modal para agregar orden
+            btnAgregarOrden.addEventListener('click', function() {
+                document.getElementById('orderModalTitle').textContent = 'Agregar Nueva Orden';
+                document.getElementById('orderModalSubtitle').textContent = 'Complete los datos de la orden de venta';
+                document.getElementById('editOrderId').value = '';
+                orderForm.reset();
+                
+                orderModal.style.display = 'flex';
+                setTimeout(() => {
+                    orderModal.style.opacity = '1';
+                }, 10);
+            });
+            
+            // Cerrar modal
+            closeOrderModal.addEventListener('click', function() {
+                orderModal.style.opacity = '0';
+                setTimeout(() => {
+                    orderModal.style.display = 'none';
+                }, 500);
+            });
+            
+            cancelOrderButton.addEventListener('click', function() {
+                orderModal.style.opacity = '0';
+                setTimeout(() => {
+                    orderModal.style.display = 'none';
+                }, 500);
+            });
+            
+            // Guardar orden (agregar o editar)
+            orderForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const orderId = document.getElementById('editOrderId').value;
+                const nuevaOrden = {
+                    "ORDEN DE VENTA ": document.getElementById('orderNum').value,
+                    "ASESOR": document.getElementById('orderAsesor').value,
+                    "SOLICITUD": fechaParaInput(document.getElementById('orderSolicitud').value),
+                    "CREDITO": "30", // Valor por defecto
+                    "CLIENTE": document.getElementById('orderCliente').value,
+                    "FACTURA SAT": "N/A", // Valor por defecto
+                    "VENTAS QUETZALES": document.getElementById('orderVentasQ').value,
+                    "VENTAS DOLARES": document.getElementById('orderVentasD').value,
+                    "EMITIDA": fechaParaInput(document.getElementById('orderEmitida').value),
+                    "VENCE": fechaParaInput(document.getElementById('orderVence').value),
+                    "NOTIFICACION": "Factura Pagada", // Valor por defecto
+                    "STATUS OV": "Facturada", // Valor por defecto
+                    "TIPÓ VENTA": document.getElementById('orderTipoVenta').value,
+                    "MONEDA": document.getElementById('orderMoneda').value,
+                    "STATUS PAGO": document.getElementById('orderStatusPago').value,
+                    "FECHA PAGO": fechaParaInput(document.getElementById('orderFechaPago').value),
+                    "OBSERVACION PAGO": document.getElementById('orderObservacion').value || "Sin observaciones"
+                };
+                
+                if (orderId) {
+                    // Editar orden existente
+                    const index = datosOriginales.findIndex(item => item["ORDEN DE VENTA "] === orderId);
+                    if (index !== -1) {
+                        datosOriginales[index] = nuevaOrden;
+                    }
+                } else {
+                    // Agregar nueva orden
+                    datosOriginales.push(nuevaOrden);
+                }
+                
+                // Guardar en localStorage
+                guardarDatosEnLocalStorage(datosOriginales);
+                
+                // Actualizar dashboard
+                aplicarFiltros();
+                
+                // Cerrar modal
+                orderModal.style.opacity = '0';
+                setTimeout(() => {
+                    orderModal.style.display = 'none';
+                }, 500);
+                
+                mostrarMensaje(`Orden ${orderId ? 'editada' : 'agregada'} correctamente`, 'success');
+            });
+        }
+
+        // Inicializar opciones de filtros
+        function inicializarFiltros() {
+            const asesores = [...new Set(datosOriginales.map(item => item.ASESOR))];
+            const clientes = [...new Set(datosOriginales.map(item => item.CLIENTE))];
+            const estadosPago = [...new Set(datosOriginales.map(item => item["STATUS PAGO"]))];
+            const monedas = [...new Set(datosOriginales.map(item => item.MONEDA))];
+            const tiposVenta = [...new Set(datosOriginales.map(item => item["TIPÓ VENTA"]))];
+
+            llenarSelect('filter-asesor', asesores);
+            llenarSelect('filter-cliente', clientes);
+            llenarSelect('filter-status-pago', estadosPago);
+            llenarSelect('filter-moneda', monedas);
+            llenarSelect('filter-tipo-venta', tiposVenta);
+        }
+
+        // Llenar un select con opciones
+        function llenarSelect(id, opciones) {
+            const select = document.getElementById(id);
+            // Limpiar opciones existentes (excepto la primera)
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            opciones.forEach(opcion => {
+                const option = document.createElement('option');
+                option.value = opcion;
+                option.textContent = opcion;
+                select.appendChild(option);
+            });
+        }
+
+        // Actualizar métricas principales
+        function actualizarMetricas() {
+            const totalVentasQuetzales = datosFiltrados.reduce((sum, item) => 
+                sum + parseFloat(item["VENTAS QUETZALES"] || 0), 0);
+            const totalVentasDolares = datosFiltrados.reduce((sum, item) => 
+                sum + parseFloat(item["VENTAS DOLARES"] || 0), 0);
+            const totalOrdenes = datosFiltrados.length;
+            
+            // Calcular ventas netas (sin IVA - 12%)
+            const IVA = 0.12;
+            const ventasNetasQuetzales = totalVentasQuetzales / (1 + IVA);
+            const ventasNetasDolares = totalVentasDolares / (1 + IVA);
+            
+            document.getElementById('total-ventas-quetzales').textContent = 
+                `Q ${totalVentasQuetzales.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+            document.getElementById('total-ventas-dolares').textContent = 
+                `$ ${totalVentasDolares.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+            document.getElementById('total-ordenes').textContent = totalOrdenes;
+            
+            // Actualizar ventas netas
+            document.getElementById('ventas-netas-quetzales').textContent = 
+                `Q ${ventasNetasQuetzales.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+            document.getElementById('ventas-netas-dolares').textContent = 
+                `$ ${ventasNetasDolares.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+            
+            // Calcular tasa de conversión (en este caso todas están pagadas)
+            const ordenesPagadas = datosFiltrados.filter(item => item["STATUS PAGO"] === "Pagada").length;
+            const tasaConversion = totalOrdenes > 0 ? (ordenesPagadas / totalOrdenes * 100) : 0;
+            document.getElementById('tasa-conversion').textContent = `${tasaConversion.toFixed(1)}%`;
+            
+            // Calcular cambios porcentuales respecto a los datos originales
+            calcularCambiosMetricas(totalVentasQuetzales, totalVentasDolares, totalOrdenes, tasaConversion);
+            
+            // Actualizar tarjetas de asesores
+            renderizarTarjetasAsesores();
+        }
+
+        // Calcular cambios porcentuales en las métricas
+        function calcularCambiosMetricas(ventasQ, ventasD, ordenes, conversion) {
+            const totalVentasQuetzalesOriginal = datosOriginales.reduce((sum, item) => 
+                sum + parseFloat(item["VENTAS QUETZALES"] || 0), 0);
+            const totalVentasDolaresOriginal = datosOriginales.reduce((sum, item) => 
+                sum + parseFloat(item["VENTAS DOLARES"] || 0), 0);
+            const totalOrdenesOriginal = datosOriginales.length;
+            
+            // Calcular porcentajes de cambio
+            const cambioQ = totalVentasQuetzalesOriginal > 0 ? 
+                ((ventasQ - totalVentasQuetzalesOriginal) / totalVentasQuetzalesOriginal * 100) : 0;
+            const cambioD = totalVentasDolaresOriginal > 0 ? 
+                ((ventasD - totalVentasDolaresOriginal) / totalVentasDolaresOriginal * 100) : 0;
+            const cambioOrdenes = totalOrdenesOriginal > 0 ? 
+                ((ordenes - totalOrdenesOriginal) / totalOrdenesOriginal * 100) : 0;
+            
+            // Actualizar elementos de cambio
+            actualizarElementoCambio('change-ventas-quetzales', cambioQ);
+            actualizarElementoCambio('change-ventas-dolares', cambioD);
+            actualizarElementoCambio('change-ordenes', cambioOrdenes);
+            
+            // Para la tasa de conversión, mostramos el valor absoluto
+            document.getElementById('change-conversion').textContent = 
+                `vs total: ${datosFiltrados.length} órdenes`;
+        }
+
+        // Actualizar elemento de cambio con formato adecuado
+        function actualizarElementoCambio(elementId, cambio) {
+            const elemento = document.getElementById(elementId);
+            if (cambio > 0) {
+                elemento.innerHTML = `<span style="color: #2ecc71;"><i class="fas fa-arrow-up me-1"></i> ${cambio.toFixed(1)}%</span>`;
+            } else if (cambio < 0) {
+                elemento.innerHTML = `<span style="color: #e74c3c;"><i class="fas fa-arrow-down me-1"></i> ${Math.abs(cambio).toFixed(1)}%</span>`;
+            } else {
+                elemento.innerHTML = `<span style="color: #7f8c8d;"><i class="fas fa-minus me-1"></i> 0%</span>`;
+            }
+        }
+
+        // Renderizar tarjetas de clientes
+        function renderizarTarjetasClientes() {
+            const ventasPorCliente = {};
+            const ordenesPorCliente = {};
+            
+            datosFiltrados.forEach(item => {
+                const cliente = item.CLIENTE;
+                const ventaQ = parseFloat(item["VENTAS QUETZALES"] || 0);
+                const ventaD = parseFloat(item["VENTAS DOLARES"] || 0);
+                // Convertir dólares a quetzales
+                const ventaTotal = ventaQ + (ventaD * TASA_CAMBIO);
+                
+                if (ventasPorCliente[cliente]) {
+                    ventasPorCliente[cliente] += ventaTotal;
+                    ordenesPorCliente[cliente] += 1;
+                } else {
+                    ventasPorCliente[cliente] = ventaTotal;
+                    ordenesPorCliente[cliente] = 1;
+                }
+            });
+            
+            // Ordenar por valor descendente y tomar los top 6
+            const clientesOrdenados = Object.entries(ventasPorCliente)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6);
+            
+            // Actualizar badge
+            document.getElementById('total-clientes').textContent = `${Object.keys(ventasPorCliente).length} clientes`;
+            
+            // Renderizar tarjetas
+            const container = document.getElementById('clientes-cards');
+            container.innerHTML = '';
+            
+            clientesOrdenados.forEach(([cliente, monto]) => {
+                const ordenes = ordenesPorCliente[cliente];
+                const col = document.createElement('div');
+                col.className = 'col-sm-6 col-md-4 col-lg-2';
+                
+                col.innerHTML = `
+                    <div class="cliente-card">
+                        <div class="cliente-nombre">${cliente}</div>
+                        <div class="cliente-monto">Q ${monto.toLocaleString('es-GT', { minimumFractionDigits: 0 })}</div>
+                        <div class="cliente-detalle">
+                            <span>${ordenes} orden${ordenes !== 1 ? 'es' : ''}</span>
+                            <span class="cliente-ordenes">${((monto / datosFiltrados.reduce((sum, item) => sum + parseFloat(item["VENTAS QUETZALES"] || 0) + (parseFloat(item["VENTAS DOLARES"] || 0) * TASA_CAMBIO), 0)) * 100).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(col);
+            });
+        }
+
+        // Renderizar tarjetas de asesores
+        function renderizarTarjetasAsesores() {
+            const ventasPorAsesor = {};
+            const ordenesPorAsesor = {};
+            
+            datosFiltrados.forEach(item => {
+                const asesor = item.ASESOR;
+                const ventaQ = parseFloat(item["VENTAS QUETZALES"] || 0);
+                const ventaD = parseFloat(item["VENTAS DOLARES"] || 0);
+                
+                if (ventasPorAsesor[asesor]) {
+                    ventasPorAsesor[asesor].quetzales += ventaQ;
+                    ventasPorAsesor[asesor].dolares += ventaD;
+                    ordenesPorAsesor[asesor] += 1;
+                } else {
+                    ventasPorAsesor[asesor] = {
+                        quetzales: ventaQ,
+                        dolares: ventaD
+                    };
+                    ordenesPorAsesor[asesor] = 1;
+                }
+            });
+            
+            // Actualizar badge
+            document.getElementById('total-asesores').textContent = `${Object.keys(ventasPorAsesor).length} asesores`;
+            
+            // Renderizar tarjetas
+            const container = document.getElementById('asesores-cards');
+            container.innerHTML = '';
+            
+            Object.entries(ventasPorAsesor).forEach(([asesor, montos]) => {
+                const ordenes = ordenesPorAsesor[asesor];
+                const col = document.createElement('div');
+                col.className = 'col-sm-6 col-md-4 col-lg-3';
+                
+                col.innerHTML = `
+                    <div class="asesor-card">
+                        <div class="asesor-nombre">${asesor}</div>
+                        <div class="asesor-monto">Q ${montos.quetzales.toLocaleString('es-GT', { minimumFractionDigits: 2 })}</div>
+                        <div class="asesor-monto">$ ${montos.dolares.toLocaleString('es-GT', { minimumFractionDigits: 2 })}</div>
+                        <div class="asesor-detalle">
+                            <span>${ordenes} orden${ordenes !== 1 ? 'es' : ''}</span>
+                            <span class="asesor-ordenes">${((montos.quetzales + (montos.dolares * TASA_CAMBIO)) / datosFiltrados.reduce((sum, item) => sum + parseFloat(item["VENTAS QUETZALES"] || 0) + (parseFloat(item["VENTAS DOLARES"] || 0) * TASA_CAMBIO), 0) * 100).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(col);
+            });
+        }
+
+        // Renderizar gráficas
+        function renderizarGraficas() {
+            // Destruir gráficos existentes si los hay
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            
+            // Gráfica de estado de pago
+            renderizarGraficaEstadoPago();
+            
+            // Gráfica comparativa monedas
+            renderizarGraficaComparativaMonedas();
+            
+            // Nuevos gráficos
+            renderizarGraficaTop5Quetzales();
+            renderizarGraficaTop5Dolares();
+            renderizarGraficaVentasMes();
+        }
+
+        // Gráfica de estado de pago
+        function renderizarGraficaEstadoPago() {
+            const montosPorEstado = {};
+            datosFiltrados.forEach(item => {
+                const estado = item["STATUS PAGO"];
+                const ventaQ = parseFloat(item["VENTAS QUETZALES"] || 0);
+                const ventaD = parseFloat(item["VENTAS DOLARES"] || 0);
+                // Convertir dólares a quetzales
+                const ventaTotal = ventaQ + (ventaD * TASA_CAMBIO);
+                
+                if (montosPorEstado[estado]) {
+                    montosPorEstado[estado] += ventaTotal;
+                } else {
+                    montosPorEstado[estado] = ventaTotal;
+                }
+            });
+            
+            // Actualizar badge
+            document.getElementById('total-estados').textContent = `${Object.keys(montosPorEstado).length} estados`;
+            
+            // Mostrar montos debajo del gráfico
+            const montosContainer = document.getElementById('montos-estado-pago');
+            montosContainer.innerHTML = '';
+            
+            Object.entries(montosPorEstado).forEach(([estado, monto]) => {
+                const montoElement = document.createElement('div');
+                montoElement.innerHTML = `<span class="fw-bold">${estado}:</span> Q ${monto.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+                montosContainer.appendChild(montoElement);
+            });
+            
+            const ctx = document.getElementById('chart-estado-pago').getContext('2d');
+            charts.estadoPago = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(montosPorEstado),
+                    datasets: [{
+                        data: Object.values(montosPorEstado),
+                        backgroundColor: ['#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: Q ${context.raw.toLocaleString('es-GT')} (${percentage}%)`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            formatter: function(value, context) {
+                                const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${percentage}%`;
+                            },
+                            font: {
+                                weight: 'bold',
+                                size: 10
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        // Gráfica comparativa monedas
+        function renderizarGraficaComparativaMonedas() {
+            const totalQ = datosFiltrados.reduce((sum, item) => 
+                sum + parseFloat(item["VENTAS QUETZALES"] || 0), 0);
+            const totalD = datosFiltrados.reduce((sum, item) => 
+                sum + parseFloat(item["VENTAS DOLARES"] || 0), 0) * TASA_CAMBIO; // Convertir a quetzales
+            
+            // Calcular ratio
+            const ratio = totalQ > 0 ? (totalD / totalQ).toFixed(2) : 0;
+            document.getElementById('ratio-monedas').textContent = `Ratio: ${ratio}`;
+            
+            // Mostrar montos debajo del gráfico
+            const montosContainer = document.getElementById('montos-comparativa');
+            montosContainer.innerHTML = `
+                <div><span class="fw-bold">Quetzales:</span> Q ${totalQ.toLocaleString('es-GT', { minimumFractionDigits: 2 })}</div>
+                <div><span class="fw-bold">Dólares (convertidos):</span> Q ${totalD.toLocaleString('es-GT', { minimumFractionDigits: 2 })}</div>
+            `;
+            
+            const ctx = document.getElementById('chart-comparativa-monedas').getContext('2d');
+            charts.comparativaMonedas = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Quetzales', 'Dólares (convertidos)'],
+                    datasets: [{
+                        data: [totalQ, totalD],
+                        backgroundColor: ['#3498db', '#2ecc71']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = totalQ + totalD;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `Q ${value.toLocaleString('es-GT')} (${percentage}%)`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            formatter: function(value, context) {
+                                const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${percentage}%`;
+                            },
+                            font: {
+                                weight: 'bold',
+                                size: 10
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        // Gráfica Top 5 Ventas en Quetzales
+        function renderizarGraficaTop5Quetzales() {
+            // Obtener las 5 ventas más altas en quetzales
+            const top5Quetzales = [...datosFiltrados]
+                .filter(item => parseFloat(item["VENTAS QUETZALES"] || 0) > 0)
+                .sort((a, b) => parseFloat(b["VENTAS QUETZALES"] || 0) - parseFloat(a["VENTAS QUETZALES"] || 0))
+                .slice(0, 5);
+            
+            const labels = top5Quetzales.map(item => item.CLIENTE);
+            const data = top5Quetzales.map(item => parseFloat(item["VENTAS QUETZALES"] || 0));
+            
+            const ctx = document.getElementById('chart-top5-quetzales').getContext('2d');
+            charts.top5Quetzales = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ventas en Quetzales',
+                        data: data,
+                        backgroundColor: '#3498db',
+                        borderColor: '#2980b9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Q ${context.raw.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            anchor: 'center',
+                            align: 'center',
+                            formatter: function(value, context) {
+                                return 'Q ' + value.toLocaleString('es-GT', { minimumFractionDigits: 0 });
+                            },
+                            font: {
+                                weight: 'bold',
+                                size: 10
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Q ' + value.toLocaleString('es-GT');
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        // Gráfica Top 5 Ventas en Dólares
+        function renderizarGraficaTop5Dolares() {
+            // Obtener las 5 ventas más altas en dólares
+            const top5Dolares = [...datosFiltrados]
+                .filter(item => parseFloat(item["VENTAS DOLARES"] || 0) > 0)
+                .sort((a, b) => parseFloat(b["VENTAS DOLARES"] || 0) - parseFloat(a["VENTAS DOLARES"] || 0))
+                .slice(0, 5);
+            
+            const labels = top5Dolares.map(item => item.CLIENTE);
+            const data = top5Dolares.map(item => parseFloat(item["VENTAS DOLARES"] || 0));
+            
+            const ctx = document.getElementById('chart-top5-dolares').getContext('2d');
+            charts.top5Dolares = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ventas en Dólares',
+                        data: data,
+                        backgroundColor: '#2ecc71',
+                        borderColor: '#27ae60',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `$ ${context.raw.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            anchor: 'center',
+                            align: 'center',
+                            formatter: function(value, context) {
+                                return '$ ' + value.toLocaleString('es-GT', { minimumFractionDigits: 0 });
+                            },
+                            font: {
+                                weight: 'bold',
+                                size: 10
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$ ' + value.toLocaleString('es-GT');
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        // Gráfica de Ventas por Mes - CON ETIQUETAS DE DATOS AGREGADAS
+        function renderizarGraficaVentasMes() {
+            // Agrupar ventas por mes
+            const ventasPorMes = {};
+            
+            datosFiltrados.forEach(item => {
+                // Extraer el mes de la fecha de emisión
+                const fecha = item.EMITIDA;
+                const mes = fecha.split('/')[0]; // Suponiendo formato M/D/YY
+                
+                if (!ventasPorMes[mes]) {
+                    ventasPorMes[mes] = {
+                        quetzales: 0,
+                        dolares: 0,
+                        total: 0
+                    };
+                }
+                
+                ventasPorMes[mes].quetzales += parseFloat(item["VENTAS QUETZALES"] || 0);
+                ventasPorMes[mes].dolares += parseFloat(item["VENTAS DOLARES"] || 0);
+                ventasPorMes[mes].total += parseFloat(item["VENTAS QUETZALES"] || 0) + (parseFloat(item["VENTAS DOLARES"] || 0) * TASA_CAMBIO);
+            });
+            
+            // Ordenar por mes
+            const mesesOrdenados = Object.keys(ventasPorMes).sort();
+            const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            
+            const labels = mesesOrdenados.map(mes => nombresMeses[parseInt(mes) - 1]);
+            const dataQuetzales = mesesOrdenados.map(mes => ventasPorMes[mes].quetzales);
+            const dataDolares = mesesOrdenados.map(mes => ventasPorMes[mes].dolares);
+            const dataTotal = mesesOrdenados.map(mes => ventasPorMes[mes].total);
+            
+            // Actualizar badge
+            document.getElementById('total-meses').textContent = `${mesesOrdenados.length} meses`;
+            
+            // Calcular y mostrar tendencias
+            calcularTendenciasMensuales(dataQuetzales, dataDolares, dataTotal, labels);
+            
+            const ctx = document.getElementById('chart-ventas-mes').getContext('2d');
+            
+            // Configurar opciones según el tipo de gráfico
+            let datasets = [];
+            let options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                const value = context.raw;
+                                return `${label}: ${value.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+                            }
+                        }
+                    },
+                    // CONFIGURACIÓN DE ETIQUETAS DE DATOS AGREGADA
+                    datalabels: {
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10
+                        },
+                        formatter: function(value, context) {
+                            // Formatear el valor con separadores de miles
+                            return value.toLocaleString('es-GT', { minimumFractionDigits: 0 });
+                        },
+                        // Configuración específica por tipo de gráfico
+                        anchor: 'end',
+                        align: 'top',
+                        display: function(context) {
+                            // Mostrar etiquetas solo si el valor es mayor a 0
+                            return context.dataset.data[context.dataIndex] > 0;
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('es-GT');
+                            }
+                        }
+                    }
+                }
+            };
+            
+            if (tipoGraficoVentasMes === 'bar') {
+                // Gráfico de barras agrupadas
+                datasets = [
+                    {
+                        label: 'Ventas en Quetzales',
+                        data: dataQuetzales,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: '#3498db',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Ventas en Dólares',
+                        data: dataDolares,
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        borderColor: '#2ecc71',
+                        borderWidth: 1
+                    }
+                ];
+                
+                // Configuración específica para etiquetas en gráfico de barras
+                options.plugins.datalabels.anchor = 'end';
+                options.plugins.datalabels.align = 'top';
+            } else if (tipoGraficoVentasMes === 'line') {
+                // Gráfico de líneas
+                datasets = [
+                    {
+                        label: 'Ventas en Quetzales',
+                        data: dataQuetzales,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: '#3498db',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Ventas en Dólares',
+                        data: dataDolares,
+                        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                        borderColor: '#2ecc71',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }
+                ];
+                
+                // Configuración específica para etiquetas en gráfico de líneas
+                options.plugins.datalabels.anchor = 'center';
+                options.plugins.datalabels.align = 'top';
+            } else if (tipoGraficoVentasMes === 'stacked') {
+                // Gráfico de barras apiladas
+                datasets = [
+                    {
+                        label: 'Ventas en Quetzales',
+                        data: dataQuetzales,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: '#3498db',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Ventas en Dólares',
+                        data: dataDolares,
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        borderColor: '#2ecc71',
+                        borderWidth: 1
+                    }
+                ];
+                
+                options.scales.x = {
+                    stacked: true
+                };
+                options.scales.y = {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString('es-GT');
+                        }
+                    }
+                };
+                
+                // Configuración específica para etiquetas en gráfico apilado
+                options.plugins.datalabels.display = function(context) {
+                    // Mostrar solo en el dataset superior (dólares) para evitar superposición
+                    return context.datasetIndex === 1 && context.dataset.data[context.dataIndex] > 0;
+                };
+            }
+            
+            charts.ventasMes = new Chart(ctx, {
+                type: tipoGraficoVentasMes === 'line' ? 'line' : 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: options,
+                // INCLUIR EL PLUGIN DE ETIQUETAS DE DATOS
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        // Calcular tendencias mensuales
+        function calcularTendenciasMensuales(dataQuetzales, dataDolares, dataTotal, labels) {
+            const tendenciasContainer = document.getElementById('tendencias-mensuales');
+            const distribucionContainer = document.getElementById('distribucion-mensual');
+            
+            tendenciasContainer.innerHTML = '';
+            distribucionContainer.innerHTML = '';
+            
+            if (dataTotal.length < 2) {
+                tendenciasContainer.innerHTML = '<span class="text-muted">No hay suficientes datos para calcular tendencias</span>';
+                distribucionContainer.innerHTML = '<span class="text-muted">No hay suficientes datos para calcular distribución</span>';
+                return;
+            }
+            
+            // Calcular tendencias
+            const crecimientoQ = dataQuetzales.length > 1 ? 
+                ((dataQuetzales[dataQuetzales.length-1] - dataQuetzales[0]) / dataQuetzales[0] * 100).toFixed(1) : 0;
+            
+            const crecimientoD = dataDolares.length > 1 ? 
+                ((dataDolares[dataDolares.length-1] - dataDolares[0]) / dataDolares[0] * 100).toFixed(1) : 0;
+            
+            // Calcular distribución
+            const totalQ = dataQuetzales.reduce((a, b) => a + b, 0);
+            const totalD = dataDolares.reduce((a, b) => a + b, 0);
+            const totalGeneral = totalQ + totalD;
+            
+            const porcentajeQ = totalGeneral > 0 ? (totalQ / totalGeneral * 100).toFixed(1) : 0;
+            const porcentajeD = totalGeneral > 0 ? (totalD / totalGeneral * 100).toFixed(1) : 0;
+            
+            // Mostrar tendencias
+            tendenciasContainer.innerHTML = `
+                <div><span class="text-primary">Quetzales:</span> ${crecimientoQ > 0 ? '▲' : '▼'} ${Math.abs(crecimientoQ)}%</div>
+                <div><span class="text-success">Dólares:</span> ${crecimientoD > 0 ? '▲' : '▼'} ${Math.abs(crecimientoD)}%</div>
+            `;
+            
+            // Mostrar distribución
+            distribucionContainer.innerHTML = `
+                <div><span class="text-primary">Quetzales:</span> ${porcentajeQ}%</div>
+                <div><span class="text-success">Dólares:</span> ${porcentajeD}%</div>
+            `;
+        }
+
+        // Renderizar tabla de datos
+        function renderizarTabla() {
+            const tablaBody = document.getElementById('tabla-body');
+            tablaBody.innerHTML = '';
+            
+            const inicio = (paginaActual - 1) * registrosPorPagina;
+            const fin = inicio + registrosPorPagina;
+            const datosPagina = datosFiltrados.slice(inicio, fin);
+            
+            if (datosPagina.length === 0) {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `<td colspan="11" class="text-center py-3">No se encontraron registros con los filtros aplicados</td>`;
+                tablaBody.appendChild(fila);
+            } else {
+                datosPagina.forEach(item => {
+                    const fila = document.createElement('tr');
+                    
+                    // Formatear números con separadores de miles
+                    const ventasQ = parseFloat(item["VENTAS QUETZALES"] || 0).toLocaleString('es-GT', {
+                        minimumFractionDigits: 2
+                    });
+                    const ventasD = parseFloat(item["VENTAS DOLARES"] || 0).toLocaleString('es-GT', {
+                        minimumFractionDigits: 2
+                    });
+                    
+                    fila.innerHTML = `
+                        <td>${item["ORDEN DE VENTA "]}</td>
+                        <td>${item.ASESOR}</td>
+                        <td>${item.CLIENTE}</td>
+                        <td>Q ${ventasQ}</td>
+                        <td>$ ${ventasD}</td>
+                        <td>${formatearFecha(item.EMITIDA)}</td>
+                        <td>${formatearFecha(item.VENCE)}</td>
+                        <td><span class="badge ${item["STATUS PAGO"] === 'Pagada' ? 'badge-pagada' : 'badge-pendiente'}">${item["STATUS PAGO"]}</span></td>
+                        <td>${formatearFecha(item["FECHA PAGO"])}</td>
+                        <td>${item["TIPÓ VENTA"]}</td>
+                        <td class="admin-only">
+                            <button class="btn btn-primary btn-sm btn-action btn-editar" data-id="${item['ORDEN DE VENTA ']}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-action btn-eliminar" data-id="${item['ORDEN DE VENTA ']}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    tablaBody.appendChild(fila);
+                });
+                
+                // Agregar event listeners para los botones de acción (solo para admin)
+                const usuario = JSON.parse(localStorage.getItem('sesionActiva'));
+                if (usuario && usuario.username === 'admin') {
+                    // Event listener para editar
+                    document.querySelectorAll('.btn-editar').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const orderId = this.getAttribute('data-id');
+                            editarOrden(orderId);
+                        });
+                    });
+                    
+                    // Event listener para eliminar
+                    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const orderId = this.getAttribute('data-id');
+                            eliminarOrden(orderId);
+                        });
+                    });
+                }
+            }
+            
+            actualizarPaginacion();
+            actualizarInfoResultados();
+        }
+
+        // Editar orden
+        function editarOrden(orderId) {
+            const orden = datosOriginales.find(item => item["ORDEN DE VENTA "] === orderId);
+            if (!orden) return;
+            
+            document.getElementById('orderModalTitle').textContent = 'Editar Orden';
+            document.getElementById('orderModalSubtitle').textContent = 'Modifique los datos de la orden de venta';
+            document.getElementById('editOrderId').value = orderId;
+            
+            // Llenar el formulario con los datos de la orden
+            document.getElementById('orderNum').value = orden["ORDEN DE VENTA "];
+            document.getElementById('orderAsesor').value = orden.ASESOR;
+            document.getElementById('orderCliente').value = orden.CLIENTE;
+            document.getElementById('orderSolicitud').value = fechaParaInput(orden.SOLICITUD);
+            document.getElementById('orderVentasQ').value = orden["VENTAS QUETZALES"];
+            document.getElementById('orderVentasD').value = orden["VENTAS DOLARES"];
+            document.getElementById('orderEmitida').value = fechaParaInput(orden.EMITIDA);
+            document.getElementById('orderVence').value = fechaParaInput(orden.VENCE);
+            document.getElementById('orderStatusPago').value = orden["STATUS PAGO"];
+            document.getElementById('orderFechaPago').value = fechaParaInput(orden["FECHA PAGO"]);
+            document.getElementById('orderMoneda').value = orden.MONEDA;
+            document.getElementById('orderTipoVenta').value = orden["TIPÓ VENTA"];
+            document.getElementById('orderObservacion').value = orden["OBSERVACION PAGO"];
+            
+            // Mostrar modal
+            const orderModal = document.getElementById('orderModal');
+            orderModal.style.display = 'flex';
+            setTimeout(() => {
+                orderModal.style.opacity = '1';
+            }, 10);
+        }
+
+        // Eliminar orden
+        function eliminarOrden(orderId) {
+            if (confirm(`¿Está seguro de que desea eliminar la orden ${orderId}?`)) {
+                datosOriginales = datosOriginales.filter(item => item["ORDEN DE VENTA "] !== orderId);
+                
+                // Guardar en localStorage
+                guardarDatosEnLocalStorage(datosOriginales);
+                
+                // Actualizar dashboard
+                aplicarFiltros();
+                
+                mostrarMensaje('Orden eliminada correctamente', 'success');
+            }
+        }
+
+        // Actualizar controles de paginación
+        function actualizarPaginacion() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+            
+            // Botón anterior
+            const liAnterior = document.createElement('li');
+            liAnterior.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
+            liAnterior.innerHTML = `<a class="page-link" href="#">Anterior</a>`;
+            liAnterior.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (paginaActual > 1) {
+                    paginaActual--;
+                    renderizarTabla();
+                }
+            });
+            pagination.appendChild(liAnterior);
+            
+            // Números de página
+            const paginasAMostrar = 5;
+            let inicioPaginas = Math.max(1, paginaActual - Math.floor(paginasAMostrar / 2));
+            let finPaginas = Math.min(totalPaginas, inicioPaginas + paginasAMostrar - 1);
+            
+            // Ajustar si estamos cerca del final
+            if (finPaginas - inicioPaginas + 1 < paginasAMostrar) {
+                inicioPaginas = Math.max(1, finPaginas - paginasAMostrar + 1);
+            }
+            
+            for (let i = inicioPaginas; i <= finPaginas; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    paginaActual = i;
+                    renderizarTabla();
+                });
+                pagination.appendChild(li);
+            }
+            
+            // Botón siguiente
+            const liSiguiente = document.createElement('li');
+            liSiguiente.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
+            liSiguiente.innerHTML = `<a class="page-link" href="#">Siguiente</a>`;
+            liSiguiente.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (paginaActual < totalPaginas) {
+                    paginaActual++;
+                    renderizarTabla();
+                }
+            });
+            pagination.appendChild(liSiguiente);
+        }
+
+        // Actualizar información de resultados
+        function actualizarInfoResultados() {
+            const inicio = datosFiltrados.length > 0 ? (paginaActual - 1) * registrosPorPagina + 1 : 0;
+            const fin = Math.min(paginaActual * registrosPorPagina, datosFiltrados.length);
+            const total = datosFiltrados.length;
+            
+            document.getElementById('resultados-info').textContent = 
+                `Mostrando ${inicio}-${fin} de ${total} registros`;
+        }
+
+        // Configurar eventos
+        function configurarEventos() {
+            // Aplicar filtros
+            document.getElementById('btn-aplicar-filtros').addEventListener('click', aplicarFiltros);
+            
+            // Limpiar filtros
+            document.getElementById('btn-reset-filtros').addEventListener('click', resetFiltros);
+            
+            // Búsqueda en tiempo real
+            document.getElementById('search-input').addEventListener('input', function() {
+                aplicarFiltros();
+            });
+            
+            // Exportar datos
+            document.getElementById('btn-exportar').addEventListener('click', exportarDatos);
+            
+            // Generar PDF
+            document.getElementById('btn-pdf').addEventListener('click', generarPDF);
+            
+            // Navegación rápida
+            document.getElementById('btn-prev').addEventListener('click', () => {
+                if (paginaActual > 1) {
+                    paginaActual--;
+                    renderizarTabla();
+                }
+            });
+            
+            document.getElementById('btn-next').addEventListener('click', () => {
+                const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+                if (paginaActual < totalPaginas) {
+                    paginaActual++;
+                    renderizarTabla();
+                }
+            });
+            
+            // Aplicar filtros al cambiar selects
+            document.querySelectorAll('.form-select').forEach(select => {
+                select.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Actualizar tasa de cambio
+            document.getElementById('btn-actualizar-tasa').addEventListener('click', actualizarTasaCambio);
+            
+            // Permitir Enter para actualizar tasa de cambio
+            document.getElementById('tasa-cambio-input').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    actualizarTasaCambio();
+                }
+            });
+            
+            // Cambiar tipo de gráfico de Ventas por Mes
+            document.querySelectorAll('input[name="chart-type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    tipoGraficoVentasMes = this.id.replace('-chart', '');
+                    renderizarGraficaVentasMes();
+                });
+            });
+        }
+
+        // Generar PDF
+        function generarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            
+            // Título
+            doc.setFontSize(16);
+            doc.setTextColor(44, 62, 80);
+            doc.text('INFORME DE VENTAS - UNIDAD DE ENERGÍA', 105, 15, { align: 'center' });
+            
+            // Fecha de generación
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Generado el: ${new Date().toLocaleDateString('es-GT')}`, 105, 22, { align: 'center' });
+            
+            // Métricas principales
+            doc.setFontSize(12);
+            doc.setTextColor(44, 62, 80);
+            doc.text('MÉTRICAS PRINCIPALES', 20, 35);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            doc.text(`Total Ventas (Q): ${document.getElementById('total-ventas-quetzales').textContent}`, 20, 45);
+            doc.text(`Total Ventas ($): ${document.getElementById('total-ventas-dolares').textContent}`, 20, 52);
+            doc.text(`Ventas Netas (Q): ${document.getElementById('ventas-netas-quetzales').textContent}`, 20, 59);
+            doc.text(`Ventas Netas ($): ${document.getElementById('ventas-netas-dolares').textContent}`, 20, 66);
+            doc.text(`Órdenes de Venta: ${document.getElementById('total-ordenes').textContent}`, 20, 73);
+            doc.text(`Tasa de Conversión: ${document.getElementById('tasa-conversion').textContent}`, 20, 80);
+            
+            // Filtros aplicados
+            if (Object.keys(filtrosActivos).length > 0) {
+                doc.setFontSize(12);
+                doc.setTextColor(44, 62, 80);
+                doc.text('FILTROS APLICADOS', 20, 95);
+                
+                doc.setFontSize(10);
+                doc.setTextColor(80, 80, 80);
+                let yPos = 105;
+                Object.entries(filtrosActivos).forEach(([key, value]) => {
+                    if (value) {
+                        let texto = '';
+                        switch(key) {
+                            case 'asesor': texto = `Asesor: ${value}`; break;
+                            case 'cliente': texto = `Cliente: ${value}`; break;
+                            case 'estadoPago': texto = `Estado: ${value}`; break;
+                            case 'moneda': texto = `Moneda: ${value}`; break;
+                            case 'tipoVenta': texto = `Tipo: ${value}`; break;
+                            case 'fechaInicio': texto = `Desde: ${value}`; break;
+                            case 'fechaFin': texto = `Hasta: ${value}`; break;
+                            case 'busqueda': texto = `Búsqueda: ${value}`; break;
+                            default: texto = `${key}: ${value}`;
+                        }
+                        doc.text(texto, 20, yPos);
+                        yPos += 7;
+                    }
+                });
+            }
+            
+            // Resumen de datos
+            doc.setFontSize(12);
+            doc.setTextColor(44, 62, 80);
+            doc.text('RESUMEN DE DATOS', 20, 125);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            doc.text(`Total de registros: ${datosFiltrados.length}`, 20, 135);
+            doc.text(`Tasa de cambio aplicada: ${TASA_CAMBIO} GTQ por USD`, 20, 142);
+            
+            // Guardar PDF
+            doc.save(`reporte_ventas_${new Date().toISOString().slice(0,10)}.pdf`);
+            
+            // Mostrar mensaje de éxito
+            mostrarMensaje('PDF generado correctamente', 'success');
+        }
+
+        // Actualizar tasa de cambio
+        function actualizarTasaCambio() {
+            const nuevaTasa = parseFloat(document.getElementById('tasa-cambio-input').value);
+            
+            if (!isNaN(nuevaTasa) && nuevaTasa > 0) {
+                TASA_CAMBIO = nuevaTasa;
+                document.getElementById('tasa-cambio-value').textContent = nuevaTasa.toFixed(2);
+                
+                // Actualizar todo
+                actualizarMetricas();
+                renderizarTarjetasClientes();
+                renderizarTarjetasAsesores();
+                renderizarGraficas();
+                renderizarTabla();
+                
+                // Mostrar mensaje de éxito
+                mostrarMensaje('Tasa de cambio actualizada correctamente', 'success');
+            } else {
+                mostrarMensaje('Por favor ingrese una tasa de cambio válida', 'error');
+            }
+        }
+
+        // Mostrar mensaje temporal
+        function mostrarMensaje(mensaje, tipo) {
+            const mensajeDiv = document.createElement('div');
+            mensajeDiv.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            mensajeDiv.style.top = '20px';
+            mensajeDiv.style.right = '20px';
+            mensajeDiv.style.zIndex = '9999';
+            mensajeDiv.innerHTML = `
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(mensajeDiv);
+            
+            // Auto-eliminar después de 3 segundos
+            setTimeout(() => {
+                if (mensajeDiv.parentNode) {
+                    mensajeDiv.parentNode.removeChild(mensajeDiv);
+                }
+            }, 3000);
+        }
+
+        // Aplicar filtros a los datos
+        function aplicarFiltros() {
+            const asesor = document.getElementById('filter-asesor').value;
+            const cliente = document.getElementById('filter-cliente').value;
+            const estadoPago = document.getElementById('filter-status-pago').value;
+            const moneda = document.getElementById('filter-moneda').value;
+            const tipoVenta = document.getElementById('filter-tipo-venta').value;
+            const fechaInicio = document.getElementById('filter-fecha-inicio').value;
+            const fechaFin = document.getElementById('filter-fecha-fin').value;
+            const busqueda = document.getElementById('search-input').value.toLowerCase();
+            
+            // Actualizar filtros activos
+            filtrosActivos = {};
+            if (asesor) filtrosActivos.asesor = asesor;
+            if (cliente) filtrosActivos.cliente = cliente;
+            if (estadoPago) filtrosActivos.estadoPago = estadoPago;
+            if (moneda) filtrosActivos.moneda = moneda;
+            if (tipoVenta) filtrosActivos.tipoVenta = tipoVenta;
+            if (fechaInicio) filtrosActivos.fechaInicio = fechaInicio;
+            if (fechaFin) filtrosActivos.fechaFin = fechaFin;
+            if (busqueda) filtrosActivos.busqueda = busqueda;
+            
+            actualizarFiltrosActivos();
+            
+            datosFiltrados = datosOriginales.filter(item => {
+                // Filtro por asesor
+                if (asesor && item.ASESOR !== asesor) return false;
+                
+                // Filtro por cliente
+                if (cliente && item.CLIENTE !== cliente) return false;
+                
+                // Filtro por estado de pago
+                if (estadoPago && item["STATUS PAGO"] !== estadoPago) return false;
+                
+                // Filtro por moneda
+                if (moneda && item.MONEDA !== moneda) return false;
+                
+                // Filtro por tipo de venta
+                if (tipoVenta && item["TIPÓ VENTA"] !== tipoVenta) return false;
+                
+                // Filtro por fechas (si se implementara conversión de fecha)
+                // Por simplicidad, omitimos la implementación completa de filtrado por fecha
+                
+                // Búsqueda en todos los campos
+                if (busqueda) {
+                    const textoCompleto = Object.values(item).join(' ').toLowerCase();
+                    if (!textoCompleto.includes(busqueda)) return false;
+                }
+                
+                return true;
+            });
+            
+            // Reiniciar a la primera página
+            paginaActual = 1;
+            
+            // Actualizar todo
+            actualizarMetricas();
+            renderizarTarjetasClientes();
+            renderizarTarjetasAsesores();
+            renderizarGraficas();
+            renderizarTabla();
+        }
+
+        // Actualizar visualización de filtros activos
+        function actualizarFiltrosActivos() {
+            const contenedor = document.getElementById('filtros-activos');
+            contenedor.innerHTML = '';
+            
+            if (Object.keys(filtrosActivos).length === 0) {
+                return;
+            }
+            
+            Object.entries(filtrosActivos).forEach(([key, value]) => {
+                if (value) {
+                    const badge = document.createElement('span');
+                    badge.className = 'filter-badge';
+                    
+                    let texto = '';
+                    switch(key) {
+                        case 'asesor': texto = `Asesor: ${value}`; break;
+                        case 'cliente': texto = `Cliente: ${value}`; break;
+                        case 'estadoPago': texto = `Estado: ${value}`; break;
+                        case 'moneda': texto = `Moneda: ${value}`; break;
+                        case 'tipoVenta': texto = `Tipo: ${value}`; break;
+                        case 'fechaInicio': texto = `Desde: ${value}`; break;
+                        case 'fechaFin': texto = `Hasta: ${value}`; break;
+                        case 'busqueda': texto = `Búsqueda: ${value}`; break;
+                        default: texto = `${key}: ${value}`;
+                    }
+                    
+                    badge.innerHTML = `
+                        ${texto}
+                        <span class="close" data-filter="${key}">×</span>
+                    `;
+                    
+                    contenedor.appendChild(badge);
+                }
+            });
+            
+            // Agregar event listeners para eliminar filtros
+            document.querySelectorAll('.filter-badge .close').forEach(close => {
+                close.addEventListener('click', function() {
+                    const filterKey = this.getAttribute('data-filter');
+                    eliminarFiltro(filterKey);
+                });
+            });
+        }
+
+        // Eliminar un filtro específico
+        function eliminarFiltro(filterKey) {
+            switch(filterKey) {
+                case 'asesor': document.getElementById('filter-asesor').value = ''; break;
+                case 'cliente': document.getElementById('filter-cliente').value = ''; break;
+                case 'estadoPago': document.getElementById('filter-status-pago').value = ''; break;
+                case 'moneda': document.getElementById('filter-moneda').value = ''; break;
+                case 'tipoVenta': document.getElementById('filter-tipo-venta').value = ''; break;
+                case 'fechaInicio': document.getElementById('filter-fecha-inicio').value = ''; break;
+                case 'fechaFin': document.getElementById('filter-fecha-fin').value = ''; break;
+                case 'busqueda': document.getElementById('search-input').value = ''; break;
+            }
+            
+            aplicarFiltros();
+        }
+
+        // Resetear todos los filtros
+        function resetFiltros() {
+            document.getElementById('filter-asesor').value = '';
+            document.getElementById('filter-cliente').value = '';
+            document.getElementById('filter-status-pago').value = '';
+            document.getElementById('filter-moneda').value = '';
+            document.getElementById('filter-tipo-venta').value = '';
+            document.getElementById('filter-fecha-inicio').value = '';
+            document.getElementById('filter-fecha-fin').value = '';
+            document.getElementById('search-input').value = '';
+            
+            aplicarFiltros();
+        }
+
+        // Exportar datos a CSV
+        function exportarDatos() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Encabezados
+            const headers = Object.keys(datosOriginales[0]);
+            csvContent += headers.join(",") + "\r\n";
+            
+            // Datos
+            datosFiltrados.forEach(item => {
+                const row = headers.map(header => {
+                    let value = item[header] || '';
+                    // Escapar comillas
+                    value = String(value).replace(/"/g, '""');
+                    // Envolver en comillas si contiene coma
+                    if (value.includes(',')) {
+                        value = `"${value}"`;
+                    }
+                    return value;
+                });
+                csvContent += row.join(",") + "\r\n";
+            });
+            
+            // Descargar
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "reporte_ventas.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
